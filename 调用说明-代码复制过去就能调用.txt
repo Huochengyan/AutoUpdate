@@ -1,0 +1,53 @@
+﻿   #region 检查更新
+
+        private void 检查更新ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string checkVersion = "http://xxxxxx.com/software/NewVersion.txt";
+            string newVersion = HttpHelper.GetHttpResponse(checkVersion, 5000,null);
+            Console.WriteLine(newVersion);
+            Version yun = new Version(newVersion);
+            Version ben = new Version(this.ProductVersion);
+            if (yun > ben)
+            {
+                String msg = string.Format("您当前版本:{0},最新版本为:{1},确定要升级到最新版本吗？", this.ProductVersion,newVersion);
+                if (DialogResult.OK == MessageBox.Show(msg, "升级提示:升级过程中，将暂停服务！", MessageBoxButtons.OKCancel))
+                {
+                    ExistDownUpdateSoft();
+                    Process.Start(this.applicationPath + "/AutoUpdate/AutoUpdate.exe");
+                    CloseAll();
+                }
+            }
+            else {
+                MessageBox.Show("已经是最新版！");
+            }          
+        }
+
+        /// <summary>
+        /// 没有升级组件就下载，有就更新。直接返回
+        /// </summary>
+        /// <returns></returns>
+        private bool ExistDownUpdateSoft() {
+            if (!File.Exists(this.applicationPath + "/AutoUpdate/AutoUpdate.exe"))
+            {
+                FrmForm.FrmUpdate frmUpdate = new FrmForm.FrmUpdate();
+                DialogResult result = frmUpdate.ShowDialog();
+                if (result == DialogResult.OK)
+                {
+                    return true;
+                }
+            }
+            return true;
+        }
+
+        private void CloseAll() {
+            System.Environment.Exit(0);
+            if (myThread != null)
+            {
+                myThread.Abort();
+            }
+            // 关闭所有的线程
+            this.Dispose();
+            this.Close();
+        }
+
+        #endregion
